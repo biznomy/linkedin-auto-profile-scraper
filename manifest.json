@@ -1,0 +1,23 @@
+{
+  "name": "Linkedin Profile Scrapper",
+  "version": "2",
+  "manifest_version": 2,
+  "icons": {
+    "16": "desktop.png",
+    "128": "desktop.png"
+  },
+  "browser_action": {
+     "default_icon": "icon.png",
+     "default_popup": "index.html"
+  },
+  "content_scripts": [
+    {
+    "run_at": "document_end",
+    "matches": ["https://www.linkedin.com/in/*"],
+    "js": ["jquery.js","app.js"]
+    }
+   ],
+  "permissions": [
+    "activeTab"
+  ]
+}
