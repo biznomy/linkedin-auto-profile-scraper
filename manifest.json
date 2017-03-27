@@ -17,6 +17,9 @@
     "js": ["jquery.js","app.js"]
     }
    ],
+  "background": {
+    "scripts": ["jquery.js", "service.js" ]
+  },
   "permissions": [
     "activeTab"
   ]
