@@ -1,5 +1,6 @@
 var AJAX = {
     // domain: "http://<domain>:<port>/",
+    
     get: function(u, cb) {
         chrome.runtime.sendMessage({
             method: 'GET',
@@ -8,7 +9,7 @@ var AJAX = {
         }, cb);
     },
     post: function(u, d, cb) {
-        console.log(JSON.stringify(d));
+        //console.log(JSON.stringify(d));
         chrome.runtime.sendMessage({
             method: 'POST',
             action: 'xhttp',

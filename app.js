@@ -14,7 +14,7 @@ var SELECTOR = {
 };
 
 var actions = [
-    // 'Edit',
+    'Edit',
     'Copy',
     'Save'
 ];
@@ -35,6 +35,7 @@ var LINKEDIN = {
             }
         }, 1000);
     },
+    tempUserObj : {},
     appendButtons: function(profileCard) {
         var actionsBox = select(SELECTOR.actionsBox, profileCard)[0];
         if ($(actionsBox).length < 1) {
@@ -44,16 +45,21 @@ var LINKEDIN = {
         $("#copyUserInfo").remove();
         $("body").append('<input style="opacity:0;" type="text" id="copyUserInfo">');
         var form = '<ul class="bizform" style="list-style:none;">'
-        + '<li><label>First Name</label><div class="fieldgroup"><input type="text" name="firstname"></div></li>'
-        + '<li><label>Last Name</label><div class="fieldgroup"><input type="text" name="lastname"></div></li>'
-        + '<li><label>Image URL</label><div class="fieldgroup"><input type="text" name="imgUrl"></div></li>'
-        + '<li><label></label><div class="fieldgroup"><input type="text" name="name"></div></li>'
-        + '<li><label></label><div class="fieldgroup"><input type="text" name="headline"></div></li>'
-        + '<li><label></label><div class="fieldgroup"><input type="text" name="company"></div></li>'
-        + '<li><label></label><div class="fieldgroup"><input type="text" name="school"></div></li>'
-        + '<li><label></label><div class="fieldgroup"><input type="text" name="location"></div></li>'
+
+        + '<li><div class="fieldgroup"><label>First Name</label><input type="text" name="firstname"></div></li>'
+        + '<li><div class="fieldgroup"><label>Last Name</label><input type="text" name="lastname"></div></li>'
+        + '<li><div class="fieldgroup"><label>Full Name</label><input type="text" name="name"></div></li>'        
+
+        + '<li><div class="fieldgroup"><label>State</label><input type="text" name="address.state"></div></li>'
+        + '<li><div class="fieldgroup"><label>Country</label><input type="text" name="address.country"></div></li>'
+
+        + '<li><div class="fieldgroup"><label>Image URL</label><input type="text" name="lk.imgurl"></div></li>'
+        + '<li><div class="fieldgroup"><label>Company</label><input type="text" name="lk.company"></div></li>'
+        + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="lk.school"></div></li>'
+        + '<li><div class="fieldgroup"><label>Headline</label><input type="text" name="lk.headline"></div></li>'
+
         + '<li><button class="primary top-card-action" action="closeForm" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Close</span></button></li>'
-        + '<li> <button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>'
+        + '<li><button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>'
         + '</ul>';
         $(profileCard).find("button[action]").remove();
         $(SELECTOR.bizform).remove();
@@ -63,11 +69,11 @@ var LINKEDIN = {
         service.queryPerson({
             "lk.url": window.location.href
         }, function(r) {
-            if (r.length > 1) {
+            if (r.length >= 1) {
                 var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
                 view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
                 $(actionsBox).append(view);
-                LINKEDIN.bindActions(result.data[0]);
+                LINKEDIN.bindActions(r[0]);
 
             } else {
                 var location = select(SELECTOR.location, profileCard)[0].textContent.trim();
@@ -100,9 +106,9 @@ var LINKEDIN = {
         });
 
         var allFields = $(SELECTOR.bizform).find("input[name]");
-        allFields.keyup(function() {
-            LINKEDIN.copyUserInfo();
-        });
+        // allFields.keyup(function() {
+        //     LINKEDIN.copyUserInfo();
+        // });
 
     },
     copyUserInfo: function() {
@@ -146,6 +152,7 @@ var LINKEDIN = {
                     $(SELECTOR.bizform).show();
                     break;
                 case "closeForm":
+                    LINKEDIN.tempUserObj = {};
                     $(SELECTOR.bizform).hide();
                     break;
                 case "saveForm":
@@ -154,11 +161,23 @@ var LINKEDIN = {
             }
         });
     },
+    onChangeInput : function(output, key, input) {
+        if(key.indexOf(".") > -1) {
+            key = key.split(".");
+            var a = output;
+            for(var x = 0; x < key.length - 1; x++) {
+                a = a[key[x]];
+            }
+            a[key[key.length - 1]] = input;
+        } else {
+            output[key] = input;
+        }
+    },
     saveUser: function() {
         var inputs = $(SELECTOR.bizform).find("input[name]");
-        var USER = {};
+        var USER = LINKEDIN.tempUserObj;
         for (var i = 0; i < inputs.length; i++) {
-            USER[$(inputs[i]).attr("name")] = $(inputs[i]).val();
+            LINKEDIN.onChangeInput(USER, $(inputs[i]).attr("name"), $(inputs[i]).val());
         }
         service.savePerson(USER, function(r) {
             console.log(r);
@@ -169,12 +188,27 @@ var LINKEDIN = {
         uu = uu ? uu : LINKEDIN.getUserInfo();
         var inputs = $(SELECTOR.bizform).find("input[name]");
         for (var i = 0; i < inputs.length; i++) {
-            var v = uu[$(inputs[i]).attr("name")];
-            $(inputs[i]).val(v);
+            $(inputs[i]).change(function() {
+                console.log($(this).val());
+            });
+            var v,key = $(inputs[i]).attr("name");
+            if(key.indexOf(".") > -1){
+                key = key.split(".");
+                v = uu;
+                for(var x = 0; x < key.length; x++){
+                    v = v[key[x]];
+                }
+            } else {
+                v = uu[$(inputs[i]).attr("name")];
+            }
+            if(v !== undefined) {
+                $(inputs[i]).val(v);
+            }
         }
         LINKEDIN.copyUserInfo();
     },
     getUserInfo: function() {
+        LINKEDIN.tempUserObj = {};
         var profileCard = select(SELECTOR.profileCard)[0];
         var href = window.location.href,
             USER = null;
@@ -219,7 +253,8 @@ var LINKEDIN = {
                 }
             }
         }
-        console.log(USER);
+        LINKEDIN.tempUserObj = USER;
+        console.log(LINKEDIN.tempUserObj);
         return USER;
     },
     getUsername: function() {
