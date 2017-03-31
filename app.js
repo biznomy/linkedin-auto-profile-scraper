@@ -13,7 +13,11 @@ var SELECTOR = {
     bizform: ".pv-top-card-section__body ul.bizform"
 };
 
-var actions = ['Edit', 'Copy', 'Save'];
+var actions = [
+    // 'Edit',
+    'Copy',
+    'Save'
+];
 
 var LINKEDIN = {
     currentPage: null,
@@ -39,7 +43,18 @@ var LINKEDIN = {
         console.log("Append UI");
         $("#copyUserInfo").remove();
         $("body").append('<input style="opacity:0;" type="text" id="copyUserInfo">');
-        var form = '<ul class="bizform"><li><label></label><div class="fieldgroup"><input type="text" name="username"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="imgUrl"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="name"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="headline"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="company"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="school"></div></li>' + '<li><label></label><div class="fieldgroup"><input type="text" name="location"></div></li>' + '<li> <button class="primary top-card-action" action="closeForm" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Close</span></button></li>' + '<li> <button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>' + '</ul>';
+        var form = '<ul class="bizform" style="list-style:none;">'
+        + '<li><label>First Name</label><div class="fieldgroup"><input type="text" name="firstname"></div></li>'
+        + '<li><label>Last Name</label><div class="fieldgroup"><input type="text" name="lastname"></div></li>'
+        + '<li><label>Image URL</label><div class="fieldgroup"><input type="text" name="imgUrl"></div></li>'
+        + '<li><label></label><div class="fieldgroup"><input type="text" name="name"></div></li>'
+        + '<li><label></label><div class="fieldgroup"><input type="text" name="headline"></div></li>'
+        + '<li><label></label><div class="fieldgroup"><input type="text" name="company"></div></li>'
+        + '<li><label></label><div class="fieldgroup"><input type="text" name="school"></div></li>'
+        + '<li><label></label><div class="fieldgroup"><input type="text" name="location"></div></li>'
+        + '<li><button class="primary top-card-action" action="closeForm" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Close</span></button></li>'
+        + '<li> <button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>'
+        + '</ul>';
         $(profileCard).find("button[action]").remove();
         $(SELECTOR.bizform).remove();
         $(SELECTOR.section__body).append(form);
@@ -55,33 +70,35 @@ var LINKEDIN = {
                 LINKEDIN.bindActions(result.data[0]);
 
             } else {
-                for (var i = 0; i < actions.length; i++) {
-                    var actn = actions[i];
-                    view = '<button style="margin:8px;" class="primary top-card-action" action="' + actn + '"><span class="default-text">' + actn + '</span></button>';
-                    $(actionsBox).append(view);
+                var location = select(SELECTOR.location, profileCard)[0].textContent.trim();
+                var add1 = {};
+                if (location.indexOf(",") > -1) {
+                    location = location.split(",");
+                    add1["country"] = location.pop().trim();
+                } else {
+                    add1["country"] = location.trim();
                 }
-                LINKEDIN.bindActions();
-
+                service.queryPerson({
+                    "name": select(SELECTOR.name, profileCard)[0].textContent.trim(),
+                    "address.country" : add1
+                }, function(r) {
+                    if (r.length > 1) {
+                        var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
+                        view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
+                        $(actionsBox).append(view);
+                        LINKEDIN.bindActions(result.data[0]);
+                    } else {
+                        for (var i = 0; i < actions.length; i++) {
+                            var actn = actions[i];
+                            view = '<button style="margin:8px;" class="primary top-card-action" action="' + actn + '"><span class="default-text">' + actn + '</span></button>';
+                            $(actionsBox).append(view);
+                        }
+                        LINKEDIN.bindActions();
+                    }
+                });
             }
         });
 
-        // AJAX.get(path, function(result) {
-        //     if (!result.status) {
-        //         for (var i = 0; i < actions.length; i++) {
-        //             var actn = actions[i];
-        //             view = '<button style="margin:8px;" class="primary top-card-action" action="' + actn + '"><span class="default-text">' + actn + '</span></button>';
-        //             $(actionsBox).append(view);
-        //         }
-        //         LINKEDIN.bindActions();
-        //     } else {
-        //         if (result.data && result.data.length > 0) {
-        //             var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
-        //             view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
-        //             $(actionsBox).append(view);
-        //             LINKEDIN.bindActions(result.data[0]);
-        //         }
-        //     }
-        // });
         var allFields = $(SELECTOR.bizform).find("input[name]");
         allFields.keyup(function() {
             LINKEDIN.copyUserInfo();
@@ -147,9 +164,6 @@ var LINKEDIN = {
             console.log(r);
             //AJAX.displayResponse(r);
         });
-        // AJAX.post("linkedin", USER, function(r) {
-        //     AJAX.displayResponse(r);
-        // });
     },
     editUser: function(uu) {
         uu = uu ? uu : LINKEDIN.getUserInfo();
@@ -191,12 +205,12 @@ var LINKEDIN = {
                 add1["country"] = location.trim();
             }
             USER = {
+                name: select(SELECTOR.name, profileCard)[0].textContent.trim(),
                 firstname: firstName,
                 lastname: lastName,
                 address: add1,
                 lk: {
                     url: href,
-                    name: select(SELECTOR.name, profileCard)[0].textContent.trim(),
                     username: LINKEDIN.getUsername(),
                     imgurl: select(SELECTOR.img, profileCard)[0].src,
                     headline: select(SELECTOR.headline, profileCard)[0].textContent.trim(),
