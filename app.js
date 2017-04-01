@@ -178,6 +178,7 @@ var LINKEDIN = {
                             $(actionsBox).append(view);
                         }
                         LINKEDIN.bindActions();
+                        LINKEDIN.personId = "";
                         $(".ally-typeahead123-panel").hide();
                     }
                 });
