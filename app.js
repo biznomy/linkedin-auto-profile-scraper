@@ -10,15 +10,15 @@ var SELECTOR = {
     actionsBox: ".pv-top-card-section__actions",
     section__body: ".pv-top-card-section__body",
     section__information: ".pv-top-card-section__information",
-    bizform: ".pv-top-card-section__body ul.bizform"
-};
+    bizform: ".pv-top-card-section__body ul.bizform",
+    personDetails : ".pv-top-card-section__information.mt3"
 
+};
 var actions = [
     'Edit',
     'Copy',
     'Save'
 ];
-
 var LINKEDIN = {
     currentPage: null,
     init: function() {
@@ -28,6 +28,7 @@ var LINKEDIN = {
                     if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0) {
                         LINKEDIN.currentPage = window.location.href;
                         LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+                        LINKEDIN.appendTypehead();
                     }
                 }, 500);
             } else {
@@ -35,7 +36,58 @@ var LINKEDIN = {
             }
         }, 1000);
     },
+    personId : "",
     tempUserObj : {},
+    appendTypehead : function() {
+        console.log("hello typehead");
+        $(".ally-typeahead123-panel").remove();
+        var element = '<div class="pv-top-card-section__information mt3 ally-typeahead123-panel">'
+        + '<div class="type-ahead-input-wrapper">'
+        + '<div class="type-ahead-input">'
+        + '  <label for="ally-typeahead123" class="visually-hidden">'
+        + '      Search'
+        + '  </label>'
+        + '  <input aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search" autocorrect="off" autocapitalize="off" id="ally-typeahead123" role="combobox" class="ember-text-field typeahead" aria-expanded="false"></input>'
+        + '  <div class="type-ahead-input-icons">'
+        + '  </div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="typeahead-list-panel"></div>'
+        + '</div>';
+
+        $(SELECTOR.personDetails).after(element);
+        $(".ally-typeahead123-panel").hide();
+        typeahead.create("#ally-typeahead123", function(elm) {
+            if($(elm).val() !== "" && $(elm).val() !== undefined) {
+                service.queryPerson({
+                    "name" : {
+                        '$regex': $(elm).val()
+                    }
+                }, function(r) {
+                    console.log(r);
+                    $(".typeahead-list-panel").empty("");
+                    if(r.length > 0) {
+                        var list = '<ul style="list-style : none;">'
+                        for(var z = 0; z < r.length; z++){
+                            list += '<li id="' + r[z]._id + '">' + r[z].name + '&nbsp;&nbsp;&nbsp;&nbsp;' + r[z].address.country + "</li>";
+                            $(document).on("click", "#" + r[z]._id + "", function() {
+                                LINKEDIN.personId = $(this).attr('id');
+                                console.log(LINKEDIN.personId);
+                                $(elm).val("");
+                                $(".typeahead-list-panel").empty("");
+                            });
+                        }
+                        +"</ul>";
+                        $(".typeahead-list-panel").append(list);
+                    } else {
+                        $(".typeahead-list-panel").empty("");
+                    }
+                });
+            } else {
+                $(".typeahead-list-panel").empty("");
+            }
+        });
+    },
     appendButtons: function(profileCard) {
         var actionsBox = select(SELECTOR.actionsBox, profileCard)[0];
         if ($(actionsBox).length < 1) {
@@ -74,7 +126,7 @@ var LINKEDIN = {
                 view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
                 $(actionsBox).append(view);
                 LINKEDIN.bindActions(r[0]);
-
+                $(".ally-typeahead123-panel").show();
             } else {
                 var location = select(SELECTOR.location, profileCard)[0].textContent.trim();
                 var add1 = {};
@@ -93,6 +145,7 @@ var LINKEDIN = {
                         view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
                         $(actionsBox).append(view);
                         LINKEDIN.bindActions(result.data[0]);
+                        $(".ally-typeahead123-panel").show();
                     } else {
                         for (var i = 0; i < actions.length; i++) {
                             var actn = actions[i];
@@ -100,26 +153,16 @@ var LINKEDIN = {
                             $(actionsBox).append(view);
                         }
                         LINKEDIN.bindActions();
+                        $(".ally-typeahead123-panel").hide();
                     }
                 });
             }
         });
-
-        var allFields = $(SELECTOR.bizform).find("input[name]");
-        // allFields.keyup(function() {
-        //     LINKEDIN.copyUserInfo();
-        // });
-
     },
     copyUserInfo: function() {
-        var allFields = $(SELECTOR.bizform).find("input[name]");
-        var str = "";
-        allFields.each(function() {
-            str += str == "" ? $(this).val() : "," + $(this).val();
-        });
-        $('#copyUserInfo').val(str);
+        var USER = LINKEDIN.getUserInfo()
+        $('#copyUserInfo').val(JSON.stringify(USER));
         $('#copyUserInfo').select();
-
         try {
             var successful = document.execCommand('copy');
             var msg = successful ? 'successful' : 'unsuccessful';
@@ -131,7 +174,6 @@ var LINKEDIN = {
     bindActions: function(uu) {
         $(SELECTOR.profileCard).find("button[action]").on("click", function() {
             var t = $(this).attr("action");
-
             switch (t) {
                 case actions[0]:
                     LINKEDIN.editUser();
@@ -141,10 +183,9 @@ var LINKEDIN = {
                     LINKEDIN.editUser();
                     break;
                 case actions[2]:
-                    var uu = LINKEDIN.getUserInfo();
-                    service.savePerson(uu, function(r) {
+                    service.savePerson(LINKEDIN.getUserInfo(), function(r) {
                         console.log(r);
-                        //AJAX.displayResponse(r);
+                        LINKEDIN.statusPerson(r);
                     });
                     break;
                 case "getFromServer":
@@ -160,6 +201,13 @@ var LINKEDIN = {
                     break;
             }
         });
+    },
+    statusPerson : function(res) {
+        if(res.statusText !== undefined && res.statusText === "error"){
+            alert("Error unable to save please try again later.");
+        } else {
+            LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+        }
     },
     onChangeInput : function(output, key, input) {
         if(key.indexOf(".") > -1) {
@@ -180,8 +228,7 @@ var LINKEDIN = {
             LINKEDIN.onChangeInput(USER, $(inputs[i]).attr("name"), $(inputs[i]).val());
         }
         service.savePerson(USER, function(r) {
-            console.log(r);
-            //AJAX.displayResponse(r);
+            LINKEDIN.statusPerson(r);
         });
     },
     editUser: function(uu) {
@@ -251,6 +298,9 @@ var LINKEDIN = {
                     company: select(SELECTOR.company, profileCard)[0].textContent.trim(),
                     school: select(SELECTOR.school, profileCard)[0].textContent.trim(),
                 }
+            }
+            if(LINKEDIN.personId !== undefined && LINKEDIN.personId !== "") {
+               USER["_id"] = LINKEDIN.personId;
             }
         }
         LINKEDIN.tempUserObj = USER;
