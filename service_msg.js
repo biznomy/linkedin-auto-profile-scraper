@@ -1,4 +1,4 @@
-
+var callback;
 chrome.runtime.onMessage.addListener(function(request,sender,cb) {
     console.log(request.data);
   if (request.action == "xhttp") {
@@ -12,4 +12,17 @@ chrome.runtime.onMessage.addListener(function(request,sender,cb) {
     });
     return true; 
   }
+  if (request.from == 'content_script') {
+    // cb(chrome.tabs);
+    callback = cb;
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+        alert("tab updated");
+        // callback(changeInfo);
+    });
+    return true;
+  }
 });
+
+// chrome.tabs.onUpdated.addListener(function() {
+//   alert('updated from background');
+// });

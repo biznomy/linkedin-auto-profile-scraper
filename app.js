@@ -11,7 +11,19 @@ var SELECTOR = {
     section__body: ".pv-top-card-section__body",
     section__information: ".pv-top-card-section__information",
     bizform: ".pv-top-card-section__body ul.bizform",
-    personDetails : ".pv-top-card-section__information.mt3"
+    personDetails : ".pv-top-card-section__information.mt3",
+    company : {
+        actionBar : ".org-top-card-module__company-actions-bar .org-top-card-actions",
+        isCom : ".company-main-info-company-descriptions",
+        title : ".org-top-card-module__details .org-top-card-module__name",
+        logo : ".org-top-card-module__container .org-top-card-module__logo",
+        about : ".org-about-us-organization-description .org-about-us-organization-description__text.description",
+        specailites : ".org-about-company-module__org-info .org-about-company-module__specialities",
+        website : ".org-about-company-module__org-info .org-about-company-module__company-page-url a",
+        size : ".org-about-company-module__org-info .org-about-company-module__staff-count-range",
+        founded : ".org-about-company-module__org-info .org-about-company-module__founded-year",
+        industry : ".org-about-company-module__org-info .org-about-company-module__industry"
+    }
 
 };
 var actions = [
@@ -19,16 +31,42 @@ var actions = [
     'Copy',
     'Save'
 ];
+
+// $('.company-main-info-company-descriptions') 
+// $('.org-top-card-module__details .org-top-card-module__name').text().trim() //company title
+// $('.org-top-card-module__container .org-top-card-module__logo').attr('src') // company logo
+// $('.org-about-us-organization-description .org-about-us-organization-description__text.description').text() //about-us
+// $('.org-about-company-module__org-info .org-about-company-module__specialities').text().trim() // compnay specailites
+// $('.org-about-company-module__org-info .org-about-company-module__company-page-url a').attr('href') // company web-link
+// $('.org-about-company-module__org-info .org-about-company-module__staff-count-range').text().trim() //company size
+// $('.org-about-company-module__org-info .org-about-company-module__founded-year').text().trim() //company founded
+// $('.org-about-company-module__org-info .org-about-company-module__industry').text().trim() //company industry
+
 var LINKEDIN = {
     currentPage: null,
+    isCompany : function() {
+        if($(SELECTOR.company.isCom).length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     init: function() {
         setTimeout(function() {
-            if ($(SELECTOR.profileCard).length > 0) {
-                setInterval(function() {
-                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0) {
+            if ($(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany()) {
+                var Interval  = setInterval(function() {
+                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany()) {
                         LINKEDIN.currentPage = window.location.href;
-                        LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
-                        LINKEDIN.appendTypehead();
+                        if(LINKEDIN.isCompany()) {
+                            SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--non-lcp-page.ember-view";
+                            SELECTOR.bizform = ".bizform-company";
+                            LINKEDIN.appendCompanyBtn();
+                            LINKEDIN.bindActions();
+                            clearInterval(Interval);
+                        } else {
+                            LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+                            LINKEDIN.appendTypehead();
+                        }
                     }
                 }, 500);
             } else {
@@ -37,7 +75,9 @@ var LINKEDIN = {
         }, 1000);
     },
     personId : "",
+    companyId : "",
     tempUserObj : {},
+    tempComObj : {},
     showPersonList : function(r, elm) {
         console.log(r);
         $(".typeahead-list-panel").empty("");
@@ -92,6 +132,39 @@ var LINKEDIN = {
                 $(".typeahead-list-panel").empty("");
             }
         });
+    },
+    appendCompanyBtn : function() {
+        console.log("Append COMPANY UI");
+        var actionBar = $(SELECTOR.company.actionBar);
+        $("#copyUserInfo").remove();
+        $("body").append('<input style="opacity:0;" type="text" id="copyUserInfo">');
+        var addBtn = "";
+        for(var a = 0; a < actions.length; a++) {
+            addBtn += '<button id="ember8566" action="' + actions[a] + '" class="org-top-card-actions__follow-btn mr1 button-primary-medium org-hover-button ember-view">  <span class="org-hover-button__hover-label">'
+                    + actions[a]
+                    + '</span>'
+                    + '<span aria-hidden="true" class="org-hover-button__normal-label">' + actions[a] + '</span>'
+                    + '</button>';
+        }
+        var form = '<ul class="bizform-company" style="list-style:none;">'
+
+        + '<li><div class="fieldgroup"><label>Title</label><input type="text" name="title"></div></li>'
+        + '<li><div class="fieldgroup"><label>Logo</label><input type="text" name="logo"></div></li>'
+        + '<li><div class="fieldgroup"><label>About</label><input type="text" name="about"></div></li>'        
+
+        + '<li><div class="fieldgroup"><label>State</label><input type="text" name="specailites"></div></li>'
+        + '<li><div class="fieldgroup"><label>Country</label><input type="text" name="type"></div></li>'
+
+        + '<li><div class="fieldgroup"><label>Image URL</label><input type="text" name="size"></div></li>'
+        + '<li><div class="fieldgroup"><label>Company</label><input type="text" name="website"></div></li>'
+        + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="founded"></div></li>'
+
+        + '<li><button class="primary top-card-action" action="closeForm" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Close</span></button></li>'
+        + '<li><button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>'
+        + '</ul>';
+        $(actionBar).append(addBtn);
+        $('.org-top-card-module__company-actions-bar').after(form);
+        $('.bizform-company').hide();
     },
     appendButtons: function(profileCard) {
         var actionsBox = select(SELECTOR.actionsBox, profileCard)[0];
@@ -185,8 +258,13 @@ var LINKEDIN = {
             }
         });
     },
-    copyUserInfo: function() {
-        var USER = LINKEDIN.getUserInfo()
+    copyUserInfo: function(a) {
+        var USER = "";
+        if(a === 1) {
+            USER = LINKEDIN.getCompanyInfo();
+        } else {
+            USER = LINKEDIN.getUserInfo();
+        }
         $('#copyUserInfo').val(JSON.stringify(USER));
         $('#copyUserInfo').select();
         try {
@@ -202,17 +280,28 @@ var LINKEDIN = {
             var t = $(this).attr("action");
             switch (t) {
                 case actions[0]:
-                    LINKEDIN.editUser();
-                    $(SELECTOR.bizform).show();
+                    if(LINKEDIN.isCompany()){
+                        LINKEDIN.editCompany();
+                    } else {
+                        LINKEDIN.editUser();
+                        $(SELECTOR.bizform).show();
+                    }
                     break;
                 case actions[1]:
                     LINKEDIN.editUser();
                     break;
                 case actions[2]:
-                    service.savePerson(LINKEDIN.getUserInfo(), function(r) {
-                        console.log(r);
-                        LINKEDIN.statusPerson(r);
-                    });
+                    if(LINKEDIN.isCompany()) {
+                        service.saveCompany(LINKEDIN.getCompanyInfo(), function(r) {
+                            console.log(r);
+                            LINKEDIN.statusCompany(r);
+                        });
+                    } else {
+                        service.savePerson(LINKEDIN.getUserInfo(), function(r) {
+                            console.log(r);
+                            LINKEDIN.statusPerson(r);
+                        });
+                    }
                     break;
                 case "getFromServer":
                     LINKEDIN.editUser(uu);
@@ -220,6 +309,7 @@ var LINKEDIN = {
                     break;
                 case "closeForm":
                     LINKEDIN.tempUserObj = {};
+                    LINKEDIN.tempComObj = {};
                     $(SELECTOR.bizform).hide();
                     break;
                 case "saveForm":
@@ -233,6 +323,14 @@ var LINKEDIN = {
             alert("Error unable to save please try again later.");
         } else {
             LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+        }
+    },
+    statusCompany : function(res) {
+        if(res.statusText !== undefined && res.statusText === "error"){
+            alert("Error unable to save please try again later.");
+        } else {
+            console.log(res);
+            // LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
         }
     },
     onChangeInput : function(output, key, input) {
@@ -249,13 +347,25 @@ var LINKEDIN = {
     },
     saveUser: function() {
         var inputs = $(SELECTOR.bizform).find("input[name]");
-        var USER = LINKEDIN.tempUserObj;
+        var USER = "";
+        if(LINKEDIN.isCompany()){
+            USER = LINKEDIN.tempComObj;
+        } else {
+            USER = LINKEDIN.tempUserObj;
+        }
         for (var i = 0; i < inputs.length; i++) {
             LINKEDIN.onChangeInput(USER, $(inputs[i]).attr("name"), $(inputs[i]).val());
         }
-        service.savePerson(USER, function(r) {
-            LINKEDIN.statusPerson(r);
-        });
+        if(LINKEDIN.isCompany()) {
+            service.saveCompany(USER, function(r) {
+                LINKEDIN.statusPerson(r);
+            });
+        } else {
+            service.savePerson(USER, function(r) {
+                LINKEDIN.statusCompany(r);
+            });
+        }
+        
     },
     editUser: function(uu) {
         uu = uu ? uu : LINKEDIN.getUserInfo();
@@ -279,6 +389,59 @@ var LINKEDIN = {
             }
         }
         LINKEDIN.copyUserInfo();
+    },
+    editCompany : function() {
+        LINKEDIN.tempComObj = {};
+        var uu = LINKEDIN.getCompanyInfo();
+        var inputs = $('.bizform-company').find("input[name]");
+        for (var i = 0; i < inputs.length; i++) {
+            $(inputs[i]).change(function() {
+                console.log($(this).val());
+            });
+            var v,key = $(inputs[i]).attr("name");
+            if(key.indexOf(".") > -1){
+                key = key.split(".");
+                v = uu;
+                for(var x = 0; x < key.length; x++){
+                    v = v[key[x]];
+                }
+            } else {
+                v = uu[$(inputs[i]).attr("name")];
+            }
+            if(v !== undefined) {
+                $(inputs[i]).val(v);
+            }
+        }
+        $('.bizform-company').show();
+        LINKEDIN.copyUserInfo(1);
+    },
+    getCompanyInfo: function() {
+        LINKEDIN.tempComObj = {};
+        var href = window.location.href;
+        var company = {
+            'title': $(SELECTOR.company.title).text().trim(),
+            // 'info': "",
+            'logo': $(SELECTOR.company.logo).attr('src'),
+            'about': $(SELECTOR.company.about).text(),
+            'specailites': $(SELECTOR.company.specailites).text().trim(),
+            'website': $(SELECTOR.company.website).attr('href'),
+            'founded': $(SELECTOR.company.founded).text().trim(),
+            'size': $(SELECTOR.company.size).text().trim(),
+            'type': $(SELECTOR.company.industry).text().trim(),
+            // 'persons': [{ type: Schema.ObjectId, ref: "Person" }],
+            // 'phone': [],
+            // 'mobile': [],
+            // 'rating': Number,
+            // 'address': [],
+            // 'country': String
+        };
+
+        if(LINKEDIN.companyId !== undefined && LINKEDIN.companyId !== "") {
+               company["_id"] = LINKEDIN.companyId;
+        }
+        LINKEDIN.tempComObj = company;
+        console.log(LINKEDIN.tempComObj);
+        return company;
     },
     getUserInfo: function() {
         LINKEDIN.tempUserObj = {};
@@ -331,6 +494,81 @@ var LINKEDIN = {
         }
         LINKEDIN.tempUserObj = USER;
         console.log(LINKEDIN.tempUserObj);
+        return USER;
+    },
+    getInfo: function() {
+        LINKEDIN.tempUserObj = {};
+        var href = window.location.href,
+            USER = null;
+        if(LINKEDIN.isCompany()) {
+            USER = {
+                'title': $(SELECTOR.company.title).text().trim(),
+                // 'info': "",
+                'logo': $(SELECTOR.company.logo).attr('src'),
+                'about': $(SELECTOR.company.about).text(),
+                'specailites': $(SELECTOR.company.specailites).text().trim(),
+                'website': $(SELECTOR.company.website).attr('href'),
+                'founded': $(SELECTOR.company.founded).text().trim(),
+                'size': $(SELECTOR.company.size).text().trim(),
+                'type': $(SELECTOR.company.industry).text().trim(),
+                // 'persons': [{ type: Schema.ObjectId, ref: "Person" }],
+                // 'phone': [],
+                // 'mobile': [],
+                // 'rating': Number,
+                // 'address': [],
+                // 'country': String
+            };
+        } else {
+            var profileCard = select(SELECTOR.profileCard)[0];
+            if (href.match(profileURL)) {
+                var name = select(SELECTOR.name, profileCard)[0].textContent.trim();
+                var firstName, lastName, name;
+                if (name.indexOf(" ") > -1) {
+                    name = name.split(" ");
+                    firstName = name[0];
+                    lastName = name.slice(1, name.length).join(" ");
+                } else {
+                    firstName = name;
+                    lastName = "";
+                }
+                var location = select(SELECTOR.location, profileCard)[0].textContent.trim();
+                var add1 = {};
+                add1["raw"] = location;
+                if (location.indexOf(",") > -1) {
+                    location = location.split(",");
+                    add1["country"] = location.pop().trim();
+                    if (location.length > 1) {
+                        add1["state"] = location.pop().trim();
+                        add1["city"] = location.join(",");
+                    } else {
+                        add1["state"] = location.pop().trim();
+                    }
+                } else {
+                    add1["country"] = location.trim();
+                }
+                USER = {
+                    name: select(SELECTOR.name, profileCard)[0].textContent.trim(),
+                    firstname: firstName,
+                    lastname: lastName,
+                    address: add1,
+                    lk: {
+                        url: href,
+                        username: LINKEDIN.getUsername(),
+                        imgurl: select(SELECTOR.img, profileCard)[0].src,
+                        headline: select(SELECTOR.headline, profileCard)[0].textContent.trim(),
+                        company: select(SELECTOR.company, profileCard)[0].textContent.trim(),
+                        school: select(SELECTOR.school, profileCard)[0].textContent.trim(),
+                    }
+                }
+                
+            }
+        }
+
+        if(LINKEDIN.personId !== undefined && LINKEDIN.personId !== "") {
+           USER["_id"] = LINKEDIN.personId;
+        }
+
+        LINKEDIN.tempUserObj = USER;
         return USER;
     },
     getUsername: function() {

@@ -1,5 +1,6 @@
 var service = {
 	personKey : "person",
+    companyKey : "company",
 	// Get request To requestHandler
 	get : function(key, id, callback) {
 		AJAX.get(key + "/" + id, callback);
@@ -23,5 +24,17 @@ var service = {
     // query person request
     queryPerson : function(query, callback) {
         service.query(service.personKey, query, callback);
+    },
+    // get company request
+    getCompany : function(id, callback) {
+        service.get(service.companyKey + "/" + id, callback);
+    },
+    // save company request
+    saveCompany : function(data, callback) {
+        service.save(service.companyKey, {"company" : data}, callback);
+    },
+    // query company request
+    queryCompany : function(query, callback) {
+        service.query(service.companyKey, query, callback);
     }
 };
