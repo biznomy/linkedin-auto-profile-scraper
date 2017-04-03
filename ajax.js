@@ -1,6 +1,6 @@
 var AJAX = {
     // domain: "http://<domain>:<port>/",
-    domain: "http://192.168.1.120:8000/",
+    
     get: function(u, cb) {
         chrome.runtime.sendMessage({
             method: 'GET',
