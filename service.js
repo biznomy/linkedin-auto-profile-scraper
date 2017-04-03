@@ -9,6 +9,10 @@ var service = {
 	save : function(key, data, callback) {
         AJAX.post(key, data, callback);
     },
+    // put request To requestHandler
+    update : function(key, data, callback) {
+        AJAX.put(key, data, callback);
+    },
     // post request to send query to db
     query : function(key, query, callback) {
         AJAX.post(key, {"query" : query}, callback);
