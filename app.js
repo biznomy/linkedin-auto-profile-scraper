@@ -59,7 +59,12 @@ var LINKEDIN = {
                     if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany()) {
                         LINKEDIN.currentPage = window.location.href;
                         if(LINKEDIN.isCompany()) {
+
                             SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--non-lcp-page.ember-view";
+                            if($(SELECTOR.profileCard).length < 1) {
+                                SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--lcp-page.ember-view";
+                            }
+                            // $(".org-top-card-module.org-top-card-module--lcp-page.ember-view")
                             SELECTOR.bizform = ".bizform-company";
                             SELECTOR.personDetails = ".org-company-employees-snackbar.company-employees-snackbar.ember-view"
                             LINKEDIN.appendCompanyBtn();
@@ -132,17 +137,18 @@ var LINKEDIN = {
     appendCompanyTypeahead : function() {
         $(".ally-typeahead1234-panel").remove();
         var element = '<div class="pv-top-card-section__information mt3 ally-typeahead1234-panel">'
+
         + '<div class="type-ahead-input-wrapper">'
         + '<div class="type-ahead-input">'
         + '  <label for="ally-typeahead1234" class="visually-hidden">'
         + '      Search'
         + '  </label>'
         + '  <input aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Search" autocorrect="off" autocapitalize="off" id="ally-typeahead1234" role="combobox" class="ember-text-field typeahead" aria-expanded="false"></input>'
+        + '<button action="saveForm2" class="primary top-card-action appendCompanyTypeahead" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button>'
         + '  <div class="type-ahead-input-icons">'
         + '  </div>'
         + '</div>'
         + '</div>'
-        + '<button action="saveForm2" class="primary top-card-action appendCompanyTypeahead" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button>'
         + '<div class="typeahead-list-panel-1"></div>'
         + '</div>';
 
@@ -235,8 +241,8 @@ var LINKEDIN = {
         + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="founded"></div></li>'
         + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="lk.url"></div></li>'
 
-        + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="address.state"></div></li>'
-        + '<li><div class="fieldgroup"><label>Education</label><input type="text" name="address.countryl"></div></li>'
+        + '<li><div class="fieldgroup"><label>State</label><input type="text" name="address.state"></div></li>'
+        + '<li><div class="fieldgroup"><label>Country</label><input type="text" name="address.country"></div></li>'
 
         + '<li><button class="primary top-card-action" action="closeForm" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Close</span></button></li>'
         + '<li><button action="saveForm" class="primary top-card-action" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Save</span></button></li>'
@@ -248,9 +254,7 @@ var LINKEDIN = {
         service.queryCompany({
             "lk.url": window.location.href
         }, function(r) {
-            if(r.statusText !== undefined && r.statusText === "error"){
-                alert("Error unable to get existing value, please try again later.");
-            } else if(r.length === 1) {
+            if(r.length === 1) {
                 $(SELECTOR.company.title).after('<h4 style="color:green;">EXIST IN CRM</h4>');
                 $('button[action=Save]').hide();
                 LINKEDIN.personId = r[0]._id;
@@ -402,7 +406,7 @@ var LINKEDIN = {
                     LINKEDIN.editUser();
                     break;
                 case actions[2]:
-                    var key = ((LINKEDIN.isCompany) ? service.companyKey : service.personKey);
+                    var key = ((LINKEDIN.isCompany()) ? service.companyKey : service.personKey);
                     var sendData = {};
                     sendData[key] = LINKEDIN.getInfo();
                     service.save(key, sendData, function(r) {
@@ -480,7 +484,7 @@ var LINKEDIN = {
         if(USER._id !== undefined) {
             var id = USER._id;
             delete USER._id;
-            service.update(key + "/" + id, sendData, function(r) {
+            service.update("person" + "/" + id, sendData, function(r) {
                 console.log(r);
                 LINKEDIN.statusPerson(r);
                 $(SELECTOR.bizform).hide();
