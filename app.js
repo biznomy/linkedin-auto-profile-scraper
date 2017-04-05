@@ -1,3 +1,4 @@
+var extensionId = "dlnjpkndgdgmpcdcfmceofiiaelclpdk";
 var profileURL = "https://www.linkedin.com/in/";
 var SELECTOR = {
     profileCard: ".profile-view-grid .pv-top-card-section",
@@ -27,7 +28,8 @@ var SELECTOR = {
     },
     activity : {
         isActivity : "#detail-recent-activity",
-        activity : ".feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view"
+        activity : ".feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view",
+        feed : '.feed-s-update.feed-s-update--share.ember-view'
     }
 
 };
@@ -49,7 +51,7 @@ var LINKEDIN = {
         }
     },
     isActivity : function() {
-        if($(SELECTOR.activity.isActivity).length > 0) {
+        if($(SELECTOR.activity.isActivity).length > 0 || $(SELECTOR.activity.feed).length > 0) {
             return true;
         } else {
             return false;
@@ -94,15 +96,49 @@ var LINKEDIN = {
     companyId : "",
     tempUserObj : {},
     tempComObj : {},
-    getActivityInfo : function(elm) {
+    paste : function () {
+        var result = '';
+        $('body').append('<span id="paste-the-source-content"></span>');
+        var sandbox = $('.paste-the-source-content').val('').select();
+        if (document.execCommand('paste')) {
+            result = sandbox.val();
+        }
+        chrome.runtime.sendMessage(
+            "dlnjpkndgdgmpcdcfmceofiiaelclpdk",
+            { method: 'getClipboard' },
+            function(response) {
+                console.log(response);
+                document.getElementById('paste-the-source-content').textContent = response;
+                $('.paste-the-source-content').remove();
+            }
+        );
+        // $('.paste-the-source-content').remove();
+        return result;
+    },
+    sendRequestActivity : function(self, callback) {
+        $(self).closest('article').find('.control-panel-trigger').trigger('click');
+        $(self).closest('article').find('button[data-control-name=control_menu_copy_link]').trigger('click');
+        chrome.runtime.sendMessage(
+            extensionId,
+            { method: 'getClipboard' }, function(res){
+                callback(self, res);
+            });
+    },
+    getActivityInfo : function(elm, response) {
         var activity = {
-            description : $(elm).parent().parent().find('.feed-s-update__description .feed-s-main-content').text().trim(),
+            details : $(elm).parent().parent().find('.feed-s-update__description .feed-s-main-content').text().trim(),
             status : {
                 dataId : $(elm).closest('article').attr('data-id')
-            }
+            },
+            source : "LINKEDIN",
+            sourceUrl : response
         };
+        var comp = $(elm).parent().parent().find('.crm-company-id').text().trim();
         var person = $(elm).parent().parent().find('.crm-person-id').text().trim();
-        if(person !== undefined && person !== "") {
+        if(comp !== undefined && comp !== "") {
+            activity['company'] = comp;
+
+        } else if(person !== undefined && person !== "") {
             activity['person'] = person;
         }
         return activity;
@@ -114,8 +150,12 @@ var LINKEDIN = {
             console.log(r);
             $(key).parent().parent().find('h5.msg-crm-status').remove();
             $(key).parent().parent().find('h5.crm-person-id').remove();
+            $(key).parent().parent().find('h5.crm-company-id').remove();
             if(r !== undefined && r.length !== undefined && r.length > 0) {
                 console.log("exist :  " + username);
+                if(r[0].companies !== undefined && r[0].companies.length > 0) {
+                    $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="crm-company-id" style="display:none;">' + r[0].companies[0] + '</h5>');
+                }
                 $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="crm-person-id" style="display:none;">' + r[0]._id + '</h5>');
                 $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="msg-crm-status" style="color:green;">EXIST IN CRM</h5>');
             } else {
@@ -162,15 +202,8 @@ var LINKEDIN = {
            }
         });
     },
-    appendActivity : function() {
-        console.log('hello activity-crm-save-btn');
-        // $('.feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view').after('<div class="feed-s-post-meta ember-view"><button class="button-primary-medium activity-crm-save-btn">Save Activity</button></div>');
-        LINKEDIN.appendSaveActivityBtn();
-        $(document).on('click', ".activity-crm-save-btn", function() {
-            console.log('clicked the save Activity btn');
-            // LINKEDIN.getActivityInfo($(this));
-            var self = $(this);
-            service.saveInfo(LINKEDIN.getActivityInfo(self), function(r) {
+    sendAvtivitySaveRequest : function(self, response) {
+        service.saveInfo(LINKEDIN.getActivityInfo(self, response), function(r) {
                 console.log("Save Info");
                 console.log(r);
                 if(r !== undefined && r._id !== undefined) {
@@ -179,6 +212,17 @@ var LINKEDIN = {
                     $(parent).append('<h5 class="activity-crm-status" style="color:green;">Added In CRM</h5>');
                 }
             });
+    },
+    appendActivity : function() {
+        console.log('hello activity-crm-save-btn');
+        // $('.feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view').after('<div class="feed-s-post-meta ember-view"><button class="button-primary-medium activity-crm-save-btn">Save Activity</button></div>');
+        LINKEDIN.appendSaveActivityBtn();
+        $(document).on('click', ".activity-crm-save-btn", function() {
+            console.log('clicked the save Activity btn');
+            // LINKEDIN.getActivityInfo($(this));
+            var self = $(this);
+            LINKEDIN.sendRequestActivity(self, LINKEDIN.sendAvtivitySaveRequest);
+            
         });
     },
     showPersonList : function(r, elm) {
@@ -626,26 +670,32 @@ var LINKEDIN = {
         if(LINKEDIN.isCompany()) {
             USER = {
                 'title': $(SELECTOR.company.title).text().trim(),
-                // 'info': "",
-                'logo': $(SELECTOR.company.logo).attr('src'),
-                'about': $(SELECTOR.company.about).text(),
-                'specailites': $(SELECTOR.company.specailites).text().trim(),
                 'website': $(SELECTOR.company.website).attr('href'),
-                'founded': $(SELECTOR.company.founded).text().trim(),
-                'size': $(SELECTOR.company.size).text().trim(),
-                'type': $(SELECTOR.company.industry).text().trim(),
                 lk : {
-                    url : href
-
+                    url : href,
+                    logo : $(SELECTOR.company.logo).attr('src'),
+                    about : $(SELECTOR.company.about).text(),
+                    specailites : $(SELECTOR.company.specailites).text().trim(),
+                    founded : $(SELECTOR.company.founded).text().trim(),
+                    size : $(SELECTOR.company.size).text().trim(),
+                    type : $(SELECTOR.company.industry).text().trim(),
                 }
-
-                // 'persons': [{ type: Schema.ObjectId, ref: "Person" }],
-                // 'phone': [],
-                // 'mobile': [],
-                // 'rating': Number,
-                // 'address': [],
-                // 'country': String
             };
+            if(USER.lk.type !== "") {
+                USER['category'] = [];
+                USER['category'].push(USER.lk.type);
+            }
+            if(USER.lk.specailites !== "") {
+                USER['tags'] = [];
+                if(USER.lk.specailites.indexOf(',') > -1) {
+                    var spec = USER.lk.specailites.split(',');
+                    for(var c = 0; c < spec.length; c++) {
+                        USER['tags'].push(spec[c]);
+                    }
+                } else {
+                    USER['tags'].push(USER.lk.specailites);
+                }
+            }
             var location = $(SELECTOR.company.hq).text().trim();
             if(location !== undefined && location !== "") {
                 var add1 = {};
@@ -662,7 +712,8 @@ var LINKEDIN = {
                 } else {
                     add1["country"] = location.trim();
                 }
-                USER['address'] = add1;
+                USER['address'] = [];
+                USER['address'].push(add1);
             }
             
         } else {

@@ -19,13 +19,15 @@
    ],
   "background": {
     "persistent":true,
-    "scripts": ["jquery.js","ajax.js", "service.js", "service_msg.js", "typeahead.js" ]
+    "page": "background.html"
   },
   "permissions": [
     "activeTab",
     "webNavigation",
     "tabs",
     "http://*/*",
-    "https://*/*"
+    "https://*/*",
+    "clipboardRead",
+    "clipboardWrite"
   ]
 }
