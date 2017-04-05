@@ -167,12 +167,13 @@ var LINKEDIN = {
         var a = $(SELECTOR.activity.activity);
         for(var x = 0; x < a.length; x++) {
             if($(a[x]).closest('.feed-s-mini-update').length < 1 && $(a[x]).find('.activity-crm-save-btn').length < 1) {
-                var abc = $(a[x]).parent().find('.feed-s-post-meta__profile-link').attr('href').split('/');                
-                LINKEDIN.isPersonQuery(abc[abc.length - 1 - 1].trim(), a[x]);
-                LINKEDIN.checkActivityExist(a[x]);
+                if($(a[x]).parent().find('.activity-crm-status').length < 1 && $(a[x]).parent().find('.activity-crm-save-btn').length < 1) {
+                    var abc = $(a[x]).parent().find('.feed-s-post-meta__profile-link').attr('href').split('/');                
+                    LINKEDIN.isPersonQuery(abc[abc.length - 1 - 1].trim(), a[x]);
+                    LINKEDIN.checkActivityExist(a[x]);
+                }
             }
         }
-        
     },
     checkActivityExist : function(curr) {
         service.queryInfo({
@@ -190,15 +191,20 @@ var LINKEDIN = {
     addScrollEvent : function() {
         var a = $(SELECTOR.activity.activity);
         $(window).scroll(function() {
-           if($(window).scrollTop() + $(window).height() == $(document).height()) {
-               var intactivity =  setInterval(function() {
-                    if($(SELECTOR.activity.activity).length > a.length) {
-                        a = $(SELECTOR.activity.activity);
-                        $('.activity-crm-save-btn').parent().remove();
-                        clearInterval(intactivity);
-                        LINKEDIN.appendSaveActivityBtn();
-                    }
-               }, 1000);
+           // if($(window).scrollTop() + $(window).height() >= $(document).height() / 2) {
+           //     var intactivity =  setInterval(function() {
+           //          if($(SELECTOR.activity.activity).length > a.length) {
+           //              a = $(SELECTOR.activity.activity);
+           //              $('.activity-crm-save-btn').parent().remove();
+           //              clearInterval(intactivity);
+           //              LINKEDIN.appendSaveActivityBtn();
+           //          }
+           //     }, 1000);
+           // }
+           if($(SELECTOR.activity.activity).length > a.length) {
+            a = $(SELECTOR.activity.activity);
+            // $('.activity-crm-save-btn').parent().remove();
+            LINKEDIN.appendSaveActivityBtn();
            }
         });
     },
@@ -754,10 +760,10 @@ var LINKEDIN = {
                     lk: {
                         url: href,
                         username: LINKEDIN.getUsername(),
-                        imgurl: select(SELECTOR.img, profileCard)[0].src,
-                        headline: select(SELECTOR.headline, profileCard)[0].textContent.trim(),
-                        company: select(SELECTOR.company1, profileCard)[0].textContent.trim(),
-                        school: select(SELECTOR.school, profileCard)[0].textContent.trim(),
+                        imgurl: $(SELECTOR.img).attr('src'),
+                        headline: $(SELECTOR.headline).text().trim(),
+                        company: $(SELECTOR.company1).text().trim(),
+                        school: $(SELECTOR.school).text().trim(),
                     },
                 }
                 if(LINKEDIN.companyId !== undefined && LINKEDIN.companyId !== "") {
