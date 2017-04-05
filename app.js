@@ -36,8 +36,10 @@ var SELECTOR = {
         addnote : '.send-invite__actions button.button-secondary-large',
         textarea : '#custom-message',
         sendInvite : '.send-invite__actions button.button-primary-large.ml3',
+        isPending : '.invitation-pending.primary.ember-view',
+        isConnect : '.message-anywhere-button.message.primary.top-card-action.link-without-visited-state',
         msg : "Hello,\n"
-               
+               + "Though we don't know each other personally, would like to connect as we are reaching out to like minded technology enthusiasts and build professional relationship. In case you are not interested, please ignore this invite. We promise not to bother you again.",
     }
 
 };
@@ -450,6 +452,24 @@ var LINKEDIN = {
             }
         });
     },
+    updatePersonIfExist : function(data) {
+        var sendData = {};
+        sendData[service.personKey] = data;
+        if($(SELECTOR.connect.btn).length > 0) {
+            data['lk']['status'] = "NOT CONNECTED";
+        } else if($(SELECTOR.connect.isPending).length > 0) {
+            data['lk']['status'] = "PENDING";
+        } else if ($(SELECTOR.connect.isConnect).length > 0) {
+            data['lk']['status'] = "CONNECTED";
+        } else {
+            data['lk']['status'] = "NOT CONNECTED";
+        }
+        var id = data._id;
+        delete data._id;
+        service.update(service.personKey + "/" + id, sendData, function(r) {
+            console.log(r);
+        });
+    },
     appendButtons: function(profileCard) {
         var actionsBox = select(SELECTOR.actionsBox, profileCard)[0];
         if ($(actionsBox).length < 1) {
@@ -490,6 +510,7 @@ var LINKEDIN = {
                 LINKEDIN.bindActions(r[0]);
                 LINKEDIN.personId = r[0]._id;
                 LINKEDIN.tempUserObj = r[0];
+                LINKEDIN.updatePersonIfExist(r[0]);
                 $(".ally-typeahead123-panel").show();
                 $(".ally-typeahead1234-panel").show();
             }  else if (r.length > 1) {
@@ -522,6 +543,7 @@ var LINKEDIN = {
                         LINKEDIN.bindActions(r[0]);
                         LINKEDIN.personId = r[0]._id;
                         LINKEDIN.tempUserObj = r[0];
+                        LINKEDIN.updatePersonIfExist(r[0]);
                         $(".ally-typeahead123-panel").show();
                         $(".ally-typeahead1234-panel").show();
                     } else if (r.length > 1) {
