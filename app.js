@@ -30,6 +30,14 @@ var SELECTOR = {
         isActivity : "#detail-recent-activity",
         activity : ".feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view",
         feed : '.feed-s-update.feed-s-update--share.ember-view'
+    },
+    connect : {
+        btn : ".connect.primary.top-card-action.ember-view",
+        addnote : '.send-invite__actions button.button-secondary-large',
+        textarea : '#custom-message',
+        sendInvite : '.send-invite__actions button.button-primary-large.ml3',
+        msg : "Hello,\n"
+               
     }
 
 };
@@ -83,6 +91,7 @@ var LINKEDIN = {
                             LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
                             LINKEDIN.appendTypehead();
                             LINKEDIN.appendCompanyTypeahead();
+                            LINKEDIN.sendConnectMsg();
                             clearInterval(Interval);
                         }   
                     }
@@ -96,6 +105,21 @@ var LINKEDIN = {
     companyId : "",
     tempUserObj : {},
     tempComObj : {},
+    invokeConnectMsg : function() {
+        $(SELECTOR.connect.btn).trigger('click');
+        $(SELECTOR.connect.addnote).trigger('click');
+        $(SELECTOR.connect.textarea).val(SELECTOR.connect.msg);
+        $(SELECTOR.connect.sendInvite).trigger('click');
+        $(this).hide();
+    },
+    sendConnectMsg : function() {
+        if($(SELECTOR.connect.btn).length > 0) {
+            $(SELECTOR.connect.btn).hide();
+            var btn = '<button class="primary top-card-action btn-connect-msg" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Connect/Msg</span></button>';
+            $(SELECTOR.connect.btn).after(btn);
+            $(document).on('click', '.btn-connect-msg', LINKEDIN.invokeConnectMsg);
+        }
+    },
     paste : function () {
         var result = '';
         $('body').append('<span id="paste-the-source-content"></span>');
