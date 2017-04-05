@@ -24,6 +24,10 @@ var SELECTOR = {
         founded : ".org-about-company-module__org-info .org-about-company-module__founded-year",
         industry : ".org-about-company-module__org-info .org-about-company-module__industry",
         hq : ".org-about-company-module__org-info .org-about-company-module__headquarter"
+    },
+    activity : {
+        isActivity : "#detail-recent-activity",
+        activity : ".feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view"
     }
 
 };
@@ -33,15 +37,7 @@ var actions = [
     'Save'
 ];
 
-// $('.company-main-info-company-descriptions') 
-// $('.org-top-card-module__details .org-top-card-module__name').text().trim() //company title
-// $('.org-top-card-module__container .org-top-card-module__logo').attr('src') // company logo
-// $('.org-about-us-organization-description .org-about-us-organization-description__text.description').text() //about-us
-// $('.org-about-company-module__org-info .org-about-company-module__specialities').text().trim() // compnay specailites
-// $('.org-about-company-module__org-info .org-about-company-module__company-page-url a').attr('href') // company web-link
-// $('.org-about-company-module__org-info .org-about-company-module__staff-count-range').text().trim() //company size
-// $('.org-about-company-module__org-info .org-about-company-module__founded-year').text().trim() //company founded
-// $('.org-about-company-module__org-info .org-about-company-module__industry').text().trim() //company industry
+// $('.feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view').after('<div class="feed-s-post-meta ember-view"><button class="button-primary-medium">Save Activity</button></div>');
 
 var LINKEDIN = {
     currentPage: null,
@@ -52,14 +48,20 @@ var LINKEDIN = {
             return false;
         }
     },
+    isActivity : function() {
+        if($(SELECTOR.activity.isActivity).length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     init: function() {
         setTimeout(function() {
-            if ($(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany()) {
+            if ($(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity()) {
                 var Interval  = setInterval(function() {
-                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany()) {
+                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity()) {
                         LINKEDIN.currentPage = window.location.href;
                         if(LINKEDIN.isCompany()) {
-
                             SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--non-lcp-page.ember-view";
                             if($(SELECTOR.profileCard).length < 1) {
                                 SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--lcp-page.ember-view";
@@ -68,9 +70,13 @@ var LINKEDIN = {
                             SELECTOR.bizform = ".bizform-company";
                             SELECTOR.personDetails = ".org-company-employees-snackbar.company-employees-snackbar.ember-view"
                             LINKEDIN.appendCompanyBtn();
-                            LINKEDIN.appendTypehead();
+                            LINKEDIN.appendCompanyTypeahead();
                             LINKEDIN.bindActions();
                             clearInterval(Interval);
+                        } else if(LINKEDIN.isActivity()) {
+                            LINKEDIN.appendActivity();
+                            clearInterval(Interval);
+                            LINKEDIN.addScrollEvent();
                         } else {
                             LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
                             LINKEDIN.appendTypehead();
@@ -88,6 +94,93 @@ var LINKEDIN = {
     companyId : "",
     tempUserObj : {},
     tempComObj : {},
+    getActivityInfo : function(elm) {
+        var activity = {
+            description : $(elm).parent().parent().find('.feed-s-update__description .feed-s-main-content').text().trim(),
+            status : {
+                dataId : $(elm).closest('article').attr('data-id')
+            }
+        };
+        var person = $(elm).parent().parent().find('.crm-person-id').text().trim();
+        if(person !== undefined && person !== "") {
+            activity['person'] = person;
+        }
+        return activity;
+    },
+    isPersonQuery : function(username, key) {
+        service.queryPerson({
+            "lk.username" : username
+        }, function(r) {
+            console.log(r);
+            $(key).parent().parent().find('h5.msg-crm-status').remove();
+            $(key).parent().parent().find('h5.crm-person-id').remove();
+            if(r !== undefined && r.length !== undefined && r.length > 0) {
+                console.log("exist :  " + username);
+                $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="crm-person-id" style="display:none;">' + r[0]._id + '</h5>');
+                $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="msg-crm-status" style="color:green;">EXIST IN CRM</h5>');
+            } else {
+                $(key).parent().parent().find('.feed-s-post-meta__name').after('<h5 class="msg-crm-status" style="color:red;">NOT EXIST IN CRM</h5>');
+            }
+        });
+    },
+    appendSaveActivityBtn : function() {
+        var a = $(SELECTOR.activity.activity);
+        for(var x = 0; x < a.length; x++) {
+            if($(a[x]).closest('.feed-s-mini-update').length < 1 && $(a[x]).find('.activity-crm-save-btn').length < 1) {
+                var abc = $(a[x]).parent().find('.feed-s-post-meta__profile-link').attr('href').split('/');                
+                LINKEDIN.isPersonQuery(abc[abc.length - 1 - 1].trim(), a[x]);
+                LINKEDIN.checkActivityExist(a[x]);
+            }
+        }
+        
+    },
+    checkActivityExist : function(curr) {
+        service.queryInfo({
+            "status.dataId" : $(curr).closest('article').attr('data-id')
+        }, function(r) {
+            if(r !== undefined && r.length > 0) {
+                $(curr).parent().find('.activity-crm-status').remove();
+                $(curr).after('<div class="feed-s-post-meta ember-view"><h5 class="activity-crm-status" style="color:green;">Already In CRM</h5></div>');
+            } else {
+                $(curr).parent().find('.activity-crm-save-btn').remove();
+                $(curr).after('<div class="feed-s-post-meta ember-view"><button class="button-primary-medium activity-crm-save-btn">Save Activity</button></div>');
+            }
+        });
+    },
+    addScrollEvent : function() {
+        var a = $(SELECTOR.activity.activity);
+        $(window).scroll(function() {
+           if($(window).scrollTop() + $(window).height() == $(document).height()) {
+               var intactivity =  setInterval(function() {
+                    if($(SELECTOR.activity.activity).length > a.length) {
+                        a = $(SELECTOR.activity.activity);
+                        $('.activity-crm-save-btn').parent().remove();
+                        clearInterval(intactivity);
+                        LINKEDIN.appendSaveActivityBtn();
+                    }
+               }, 1000);
+           }
+        });
+    },
+    appendActivity : function() {
+        console.log('hello activity-crm-save-btn');
+        // $('.feed-s-post-meta.feed-s-post-meta--is-not-sponsored.ember-view').after('<div class="feed-s-post-meta ember-view"><button class="button-primary-medium activity-crm-save-btn">Save Activity</button></div>');
+        LINKEDIN.appendSaveActivityBtn();
+        $(document).on('click', ".activity-crm-save-btn", function() {
+            console.log('clicked the save Activity btn');
+            // LINKEDIN.getActivityInfo($(this));
+            var self = $(this);
+            service.saveInfo(LINKEDIN.getActivityInfo(self), function(r) {
+                console.log("Save Info");
+                console.log(r);
+                if(r !== undefined && r._id !== undefined) {
+                    var parent = $(self).parent();
+                    $(self).remove();
+                    $(parent).append('<h5 class="activity-crm-status" style="color:green;">Added In CRM</h5>');
+                }
+            });
+        });
+    },
     showPersonList : function(r, elm) {
         console.log(r);
         $(".typeahead-list-panel").empty("");
@@ -221,7 +314,7 @@ var LINKEDIN = {
         $("body").append('<input style="opacity:0;" type="text" id="copyUserInfo">');
         var addBtn = "";
         for(var a = 0; a < actions.length; a++) {
-            addBtn += '<button action="' + actions[a] + '" class="org-top-card-actions__follow-btn mr1 button-primary-medium org-hover-button ember-view">  <span class="org-hover-button__hover-label">'
+            addBtn += '<button action="' + actions[a] + '" class="org-top-card-actions__follow-btn mr1 button-primary-medium org-hover-button ember-view remove-company-btn">  <span class="org-hover-button__hover-label">'
                     + actions[a]
                     + '</span>'
                     + '<span aria-hidden="true" class="org-hover-button__normal-label">' + actions[a] + '</span>'
@@ -435,7 +528,12 @@ var LINKEDIN = {
         if(res.statusText !== undefined && res.statusText === "error"){
             alert("Error unable to save please try again later.");
         } else {
-            LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+            if(LINKEDIN.isCompany()){
+                $('.remove-company-btn').remove();
+                LINKEDIN.appendCompanyBtn()
+            } else {
+                LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+            }
         }
     },
     onChangeInput : function(output, key, input) {
