@@ -9,7 +9,7 @@ var typeahead = {
     },
     doRequest: function(elm) {
         service.queryPerson({
-            "name" : {
+            "name": {
                 '$regex': $(elm).val()
             }
         }, function(r) {

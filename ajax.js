@@ -9,7 +9,6 @@ var AJAX = {
         }, cb);
     },
     post: function(u, d, cb) {
-        //console.log(JSON.stringify(d));
         chrome.runtime.sendMessage({
             method: 'POST',
             action: 'xhttp',
@@ -18,7 +17,6 @@ var AJAX = {
         }, cb);
     },
     put: function(u, d, cb) {
-        //console.log(JSON.stringify(d));
         chrome.runtime.sendMessage({
             method: 'PUT',
             action: 'xhttp',
