@@ -242,6 +242,9 @@ var LINKEDIN = {
                     var parent = $(self).parent();
                     $(self).remove();
                     $(parent).append('<h5 class="activity-crm-status" style="color:green;">Added In CRM</h5>');
+                    LINKEDIN.showMessages("Activity Saved", "succeess");
+                } else {
+                    LINKEDIN.showMessages("Unable To Save Please Try Again later", "error");
                 }
             });
     },
@@ -468,7 +471,23 @@ var LINKEDIN = {
         delete data._id;
         service.update(service.personKey + "/" + id, sendData, function(r) {
             console.log(r);
+            // LINKEDIN.showMessages("Person Update Complete");
         });
+    },
+    showMessages : function(msg, type) {
+        $('#showMessages-crm-plugin').remove();
+        var col = "#3f51b5";
+        if(type === "success") {
+            col = "#4caf50";
+        } else if (type === "error") {
+            col = "#a11";
+        } else if (type === "warn") {
+            col = "#ff9800";
+        }
+        $('body').append('<div style="position:fixed; bottom:50px; left:45%; background-color:' + col + '; min-width:200px; color:white; text-align:center; padding : 10px; z-index: 9999999;" id="showMessages-crm-plugin">' + msg + '</div>')
+        setTimeout(function() {
+            $('#showMessages-crm-plugin').remove();
+        }, 3000);
     },
     appendButtons: function(profileCard) {
         var actionsBox = select(SELECTOR.actionsBox, profileCard)[0];
@@ -622,13 +641,16 @@ var LINKEDIN = {
     },
     statusPerson : function(res) {
         if(res.statusText !== undefined && res.statusText === "error"){
-            alert("Error unable to save please try again later.");
+            // alert("Error unable to save please try again later.");
+            LINKEDIN.showMessages("Error unable to save please try again later.", 'error');
         } else {
             if(LINKEDIN.isCompany()){
                 $('.remove-company-btn').remove();
-                LINKEDIN.appendCompanyBtn()
+                LINKEDIN.appendCompanyBtn();
+                LINKEDIN.showMessages("Company Added Successfully", "success");
             } else {
                 LINKEDIN.appendButtons(select(SELECTOR.profileCard)[0]);
+                LINKEDIN.showMessages("Person Added Successfully", "success");
             }
         }
     },
@@ -660,12 +682,14 @@ var LINKEDIN = {
                 console.log(r);
                 LINKEDIN.statusPerson(r);
                 $(SELECTOR.bizform).hide();
+                // LINKEDIN.showMessages("Update Complete");
             });
         } else {
             service.save(key, sendData, function(r) {
                 console.log(r);
                 LINKEDIN.statusPerson(r);
                 $(SELECTOR.bizform).hide();
+                // LINKEDIN.showMessages("Person Added Successfully", "success");
             });    
         }
     },
@@ -682,12 +706,14 @@ var LINKEDIN = {
                 console.log(r);
                 LINKEDIN.statusPerson(r);
                 $(SELECTOR.bizform).hide();
+                // LINKEDIN.showMessages("Update Complete");
             });
         } else {
             service.save(key, sendData, function(r) {
                 console.log(r);
                 LINKEDIN.statusPerson(r);
                 $(SELECTOR.bizform).hide();
+                // LINKEDIN.showMessages("Added Successfully", "success");
             });    
         }
     },
