@@ -33,15 +33,26 @@ var SELECTOR = {
     },
     connect: {
         btn: ".connect.primary.top-card-action.ember-view",
+        isMsg : '.core-rail.msg-messaging-container__core-rail',
         addnote: '.send-invite__actions button.button-secondary-large',
         textarea: '#custom-message',
         sendInvite: '.send-invite__actions button.button-primary-large.ml3',
         isPending: '.invitation-pending.primary.ember-view',
         isConnect: '.message-anywhere-button.message.primary.top-card-action.link-without-visited-state',
+        msgBtn : '.message-anywhere-button.message.primary.top-card-action.link-without-visited-state',
+        msgBoxFix : '.ml4.msg-overlay-conversation-bubble.ember-view',
+        msgListShowPanel : '.msg-overlay-bubble-content.msg-overlay-conversation-bubble__content, .msg-overlay-conversation-bubble__new-conversation-body',
+        msgTextArea: '.ember-text-area.msg-messaging-form__message.msg-messaging-form__message--chat.ember-view', 
+        msgTextArea2 : '.msg-compose-form.msg-compose-form--chat.ember-view',
+        msgTextArea2sub : '.msg-compose-form__message-text',
+        msgPageCompose: '.msg-compose-form.msg-compose-form--chat.ember-view',
+        msgPageList : '.msg-conversation-listitem.msg-conversations-container__convo-item',
+        beforeMsgPaneTitle : '.global-title-container.shared-title-bar.msg-title-bar.ember-view',
+        beforeMsgPaneBtn : '.msg-thread__topcard-overflow-icon.svg-icon-wrap',
         msg: "Hello,\n" + "Though we don't know each other personally, would like to connect as we are reaching out to like minded technology enthusiasts and build professional relationship. In case you are not interested, please ignore this invite. We promise not to bother you again.",
     }
-
 };
+
 var actions = [
     'Edit',
     'Copy',
@@ -49,6 +60,13 @@ var actions = [
 ];
 var LINKEDIN = {
     currentPage: null,
+    isMsgPage: function() {
+        if ($(SELECTOR.connect.isMsg).length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     isCompany: function() {
         if ($(SELECTOR.company.isCom).length > 0) {
             return true;
@@ -65,11 +83,14 @@ var LINKEDIN = {
     },
     init: function() {
         setTimeout(function() {
-            if ($(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity()) {
+            if ($(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity() || LINKEDIN.isMsgPage()) {
                 var Interval = setInterval(function() {
-                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity()) {
+                    if (LINKEDIN.currentPage != window.location.href && $(SELECTOR.profileCard).length > 0 || LINKEDIN.isCompany() || LINKEDIN.isActivity() || LINKEDIN.isMsgPage()) {
                         LINKEDIN.currentPage = window.location.href;
-                        if (LINKEDIN.isCompany()) {
+                        if(LINKEDIN.isMsgPage()) {
+                            LINKEDIN.invokeSendMessagePerson();
+                            clearInterval(Interval);
+                        } else if (LINKEDIN.isCompany()) {
                             SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--non-lcp-page.ember-view";
                             if ($(SELECTOR.profileCard).length < 1) {
                                 SELECTOR.profileCard = ".org-top-card-module.org-top-card-module--lcp-page.ember-view";
@@ -90,6 +111,7 @@ var LINKEDIN = {
                             LINKEDIN.appendTypehead();
                             LINKEDIN.appendCompanyTypeahead();
                             LINKEDIN.sendConnectMsg();
+                            LINKEDIN.sendMessagePerson();
                             clearInterval(Interval);
                         }
                     }
@@ -103,14 +125,14 @@ var LINKEDIN = {
     companyId: "",
     tempUserObj: {},
     tempComObj: {},
-    invokeConnectMsg: function() {
+    invokeConnectMsg : function() {
         $(SELECTOR.connect.btn).trigger('click');
         $(SELECTOR.connect.addnote).trigger('click');
         $(SELECTOR.connect.textarea).val(SELECTOR.connect.msg);
         $(SELECTOR.connect.sendInvite).trigger('click');
         $(this).hide();
     },
-    sendConnectMsg: function() {
+    sendConnectMsg : function() {
         if ($(SELECTOR.connect.btn).length > 0) {
             $(SELECTOR.connect.btn).hide();
             var btn = '<button class="primary top-card-action btn-connect-msg" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Connect/Msg</span></button>';
@@ -118,7 +140,112 @@ var LINKEDIN = {
             $(document).on('click', '.btn-connect-msg', LINKEDIN.invokeConnectMsg);
         }
     },
-    paste: function() {
+    addPopupCreateMsgForm : function(selfBtn, textView) {
+        console.log('Create Message');
+        $('#floatingform-message-create').remove();
+        var floatingForm = '<div id="floatingform-message-create" style="position:fixed; min-width:320px; z-index:9999; top:30%; left:35%;">'
+        + '<ul style="list-style:none; padding:20px; background-color:white; box-shadow: 0px 0px 5px 0px #283e4a;">'
+            + '<li class="first-name">'
+                    + '<label for="floatform-name">Name:</label>'
+                    + '<div class="fieldgroup">'
+                      + '<span class="error" id="floatform-name-error"></span>'
+                      + '<input type="text" name="name" value="" id="floatform-name">'
+                    + '</div>'
+                  + '</li>'
+            + '<li class="last-name">'
+                    + '<label for="floatform-company">Company:</label>'
+                    + '<div class="fieldgroup">'
+                      + '<span class="error" id="floatform-company-error"></span>'
+                      + '<input type="text" name="company" value="" id="floatform-company">'
+                    + '</div>'
+            + '</li>'
+            + '<li class="last-name">'
+                    + '<label for="floatform-country">Country:</label>'
+                    + '<div class="fieldgroup">'
+                      + '<span class="error" id="floatform-country-error"></span>'
+                      + '<input type="text" name="company" value="" id="floatform-country">'
+                    + '</div>'
+            + '</li>'
+            + '<li>'
+            + '<button class="primary top-card-action floatform-btn-set-message-create-920" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px; width: 40%;"><span class="default-text">OK</span></button>'
+            + '<button class="primary top-card-action floatform-btn-set-message-cancel-920" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px; width: 40%; margin-left:15px;"><span class="default-text">CANCEL</span></button>'
+            + '</li>'
+            + '<li>'
+            + '<textarea id="floatform-set-message-textarea-920"></textarea>'
+            + '</li>'
+        + '</ul></div>';
+        
+        $('body').append(floatingForm);
+        $('.floatform-btn-set-message-create-920').unbind('click');
+        $(document).on('click', '.floatform-btn-set-message-create-920', function(){
+            var msg = $('#floatform-set-message-textarea-920').val();
+            if(msg !== undefined) {
+                var name = $('#floatform-name').val();
+                var comp = $('#floatform-company').val();
+                var country = $('#floatform-country').val();
+                msg = msg.replace('%name%', name);
+                msg = msg.replace('%company%', comp);
+                msg = msg.replace('%country%', country);
+                $(textView).val(msg);
+                // $(selfBtn).parent().find(textView).text(msg);
+                console.log(msg);
+                $('#floatingform-message-create').remove();
+            }
+        });
+        $('.floatform-btn-set-message-cancel-920').unbind('click');
+        $(document).on('click', '.floatform-btn-set-message-cancel-920', function(){
+            $('#floatingform-message-create').remove();
+        });
+        
+    },
+    appendFixedMsgBtn : function() {
+        var btnFix =   '<button class="primary top-card-action btn-message-create-120" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Create Message</span></button>';
+        $(SELECTOR.connect.msgListShowPanel).parent().find('.btn-message-create-120').remove();
+        $(SELECTOR.connect.msgListShowPanel).after(btnFix);
+        $('.btn-message-create-120').unbind('click');
+        $(document).on('click', '.btn-message-create-120', function(){
+            LINKEDIN.addPopupCreateMsgForm($(this), SELECTOR.connect.msgTextArea);
+        });
+    },
+    appendFixedMsgBtn2 : function() {
+        $(SELECTOR.connect.msgPageCompose).parent().find('.btn-message-create-220').remove();
+        var btnFix =   '<button class="primary top-card-action btn-message-create-220" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Create Message</span></button>';
+        $(SELECTOR.connect.msgPageCompose).before(btnFix);
+        $('.btn-message-create-220').unbind('click');
+        $(document).on('click', '.btn-message-create-220', function(){
+            LINKEDIN.addPopupCreateMsgForm($(this), $(SELECTOR.connect.msgTextArea2).find(SELECTOR.connect.msgTextArea2sub));
+        });
+    },
+    invokeSendMessagePerson : function() {
+        $(SELECTOR.connect.msgBtn).trigger('click');
+        if($(SELECTOR.connect.msgBoxFix).length > 0) {
+            LINKEDIN.appendFixedMsgBtn();
+        } else if (LINKEDIN.isMsgPage()) {
+            // LINKEDIN.appendFixedMsgBtn2();
+            LINKEDIN.addMsgComposeBtn();
+        }
+    },
+    addMsgComposeBtn : function() {
+        $('.btn-compose-message-create-1320').remove();
+        var aTag = '<button class="primary top-card-action btn-compose-message-create-1320" style="margin:13px; width: 90%; background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Create Message</span></button>';
+                   
+        $(SELECTOR.connect.beforeMsgPaneTitle).after(aTag);
+        $('.btn-compose-message-create-1320').unbind('click');
+        $(document).on('click', '.btn-compose-message-create-1320', function() {
+            console.log();
+            LINKEDIN.addPopupCreateMsgForm($(this), $(SELECTOR.connect.msgTextArea2).find(SELECTOR.connect.msgTextArea2sub));
+        });
+    },
+    sendMessagePerson : function() {
+        if ($(SELECTOR.connect.msgBtn).length > 0) {
+            $(SELECTOR.connect.msgBtn).hide();
+            var btn = '<button class="primary top-card-action btn-message-person-720" style="margin:13px;background: #0084bf;font-weight: 600;height: 36px;color: #fff;overflow: hidden;padding: 0px 24px;"><span class="default-text">Send Message</span></button>';
+            $(SELECTOR.connect.msgBtn).after(btn);
+            $('.btn-message-person-720').unbind('click');
+            $(document).on('click', '.btn-message-person-720', LINKEDIN.invokeSendMessagePerson);
+        }
+    },
+    paste : function() {
         var result = '';
         $('body').append('<span id="paste-the-source-content"></span>');
         var sandbox = $('.paste-the-source-content').val('').select();
@@ -788,3 +915,13 @@ window.select = function(query, elm) {
     return elm.querySelectorAll(query);
 }
 window.addEventListener("load", LINKEDIN.init, false);
+var currentUrl = window.location.href;
+var locationinterval = setInterval(function() {
+    console.log('interval running');
+    if(currentUrl !== window.location.href) {
+        currentUrl = window.location.href;
+        if(LINKEDIN.isMsgPage()){
+            LINKEDIN.init();
+        }
+    }
+}, 1000);
