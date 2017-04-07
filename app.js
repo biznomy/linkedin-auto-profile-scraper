@@ -610,7 +610,7 @@ var LINKEDIN = {
         service.queryPerson({
             "lk.url": window.location.href
         }, function(r) {
-            if (r.length === 1) {
+            if (r !== undefined && r.length === 1) {
                 var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
                 view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
                 $(actionsBox).append(view);
@@ -620,7 +620,7 @@ var LINKEDIN = {
                 LINKEDIN.updatePersonIfExist(r[0]);
                 $(".ally-typeahead123-panel").show();
                 $(".ally-typeahead1234-panel").show();
-            } else if (r.length > 1) {
+            } else if (r !== undefined && r.length > 1) {
                 for (var i = 0; i < actions.length; i++) {
                     var actn = actions[i];
                     view = '<button style="margin:8px;" class="primary top-card-action" action="' + actn + '"><span class="default-text">' + actn + '</span></button>';
@@ -643,7 +643,7 @@ var LINKEDIN = {
                     "name": select(SELECTOR.name, profileCard)[0].textContent.trim(),
                     "address.country": add1
                 }, function(r) {
-                    if (r.length === 1) {
+                    if (r !== undefined && r.length === 1) {
                         var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
                         view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
                         $(actionsBox).append(view);
@@ -653,7 +653,7 @@ var LINKEDIN = {
                         LINKEDIN.updatePersonIfExist(r[0]);
                         $(".ally-typeahead123-panel").show();
                         $(".ally-typeahead1234-panel").show();
-                    } else if (r.length > 1) {
+                    } else if (r !== undefined && r.length > 1) {
                         for (var i = 0; i < actions.length; i++) {
                             var actn = actions[i];
                             view = '<button style="margin:8px;" class="primary top-card-action" action="' + actn + '"><span class="default-text">' + actn + '</span></button>';
