@@ -186,7 +186,12 @@ var LINKEDIN = {
                 msg = msg.replace('%name%', name);
                 msg = msg.replace('%company%', comp);
                 msg = msg.replace('%country%', country);
-                $(textView).val(msg);
+                if($(textView).length > 0) {
+                    $(textView).val(msg);
+                } else {
+                    $(selfBtn).parent().find(textView).val(msg);
+                }
+                
                 // $(selfBtn).parent().find(textView).text(msg);
                 console.log(msg);
                 $('#floatingform-message-create').remove();
