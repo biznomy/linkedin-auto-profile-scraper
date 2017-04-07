@@ -2,6 +2,7 @@ var service = {
     personKey: "person",
     companyKey: "company",
     infoKey: "info",
+    msgKey: "msg",
     // Get request To requestHandler
     get: function(key, id, callback) {
         AJAX.get(key + "/" + id, callback);
@@ -53,5 +54,9 @@ var service = {
     // query Info request
     queryInfo: function(query, callback) {
         service.query(service.infoKey, query, callback);
-    }
+    },
+    // save Message request
+    saveMsg: function(data, callback) {
+        service.save(service.msgKey, { "msg": data }, callback);
+    },
 };

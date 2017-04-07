@@ -191,7 +191,7 @@ var LINKEDIN = {
                 } else {
                     $(selfBtn).parent().find(textView).val(msg);
                 }
-                
+                LINKEDIN.sendMsgSaveReq(msg);
                 // $(selfBtn).parent().find(textView).text(msg);
                 console.log(msg);
                 $('#floatingform-message-create').remove();
@@ -201,6 +201,29 @@ var LINKEDIN = {
         $(document).on('click', '.floatform-btn-set-message-cancel-920', function(){
             $('#floatingform-message-create').remove();
         });
+        
+    },
+    sendMsgSaveReq : function(msg) {
+        // var imgurl = $(self).parent().find('.msg-entity-lockup.truncate.pv0.ph3.EntityLockup-circle-2.ember-view img').attr('src');
+        // var name = $(self).parent().find('.msg-entity-lockup__entity-info-row').text().trim();
+        // var headline = $(self).parent().find('.msg-entity-lockup__entity-info.truncate').text().trim();
+        // var query = {};
+        console.log(LINKEDIN.tempUserObj);
+        if(LINKEDIN.tempUserObj._id !== undefined) {
+            service.saveMsg({
+                message : msg,
+                person : LINKEDIN.tempUserObj._id
+            }, function(r) {
+                console.log(r);
+                if(r !== undefined) {
+                    LINKEDIN.showMessages("Message saved success", "succeess");
+                } else {
+                    LINKEDIN.showMessages("Unable to save message please try again later", "error");    
+                }
+            })
+        } else {
+            LINKEDIN.showMessages("Unable to save message user not avaiable", "error");
+        }
         
     },
     appendFixedMsgBtn : function() {
@@ -922,7 +945,7 @@ window.select = function(query, elm) {
 window.addEventListener("load", LINKEDIN.init, false);
 var currentUrl = window.location.href;
 var locationinterval = setInterval(function() {
-    console.log('interval running');
+    // console.log('interval running');
     if(currentUrl !== window.location.href) {
         currentUrl = window.location.href;
         if(LINKEDIN.isMsgPage()){
