@@ -211,7 +211,7 @@ var LINKEDIN = {
         console.log(LINKEDIN.tempUserObj);
         if(LINKEDIN.tempUserObj._id !== undefined) {
             service.saveMsg({
-                message : msg,
+                detail : msg,
                 person : LINKEDIN.tempUserObj._id
             }, function(r) {
                 console.log(r);
@@ -567,6 +567,9 @@ var LINKEDIN = {
         delete data._id;
         service.update(service.personKey + "/" + id, sendData, function(r) {
             console.log(r);
+            if(r !== undefined){
+                LINKEDIN.tempUserObj = r;
+            }
             // LINKEDIN.showMessages("Person Update Complete");
         });
     },
