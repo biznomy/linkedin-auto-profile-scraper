@@ -53,6 +53,10 @@ var SELECTOR = {
     }
 };
 
+var createdBy : {
+    'createdBy' : '58f75154eaa3bcef71284a91'
+}
+
 var actions = [
     'Edit',
     'Copy',
@@ -211,6 +215,7 @@ var LINKEDIN = {
         console.log(LINKEDIN.tempUserObj);
         if(LINKEDIN.tempUserObj._id !== undefined) {
             service.saveMsg({
+                'createdBy' : createdBy['createdBy'],
                 detail : msg,
                 person : LINKEDIN.tempUserObj._id
             }, function(r) {
@@ -301,6 +306,7 @@ var LINKEDIN = {
     },
     getActivityInfo: function(elm, response) {
         var activity = {
+            'createdBy' : createdBy['createdBy'],
             details: $(elm).parent().parent().find('.feed-s-update__description .feed-s-main-content').text().trim(),
             status: {
                 dataId: $(elm).closest('article').attr('data-id')
@@ -833,6 +839,7 @@ var LINKEDIN = {
             USER = {};
         if (LINKEDIN.isCompany()) {
             USER = {
+                'createdBy' : createdBy['createdBy'],
                 'title': $(SELECTOR.company.title).text().trim(),
                 'website': $(SELECTOR.company.website).attr('href'),
                 lk: {
@@ -912,6 +919,7 @@ var LINKEDIN = {
                     firstname: firstName,
                     lastname: lastName,
                     address: add1,
+                    'createdBy' : createdBy['createdBy'],
                     lk: {
                         url: href,
                         username: LINKEDIN.getUsername(),
