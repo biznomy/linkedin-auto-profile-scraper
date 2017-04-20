@@ -405,9 +405,9 @@ var LINKEDIN = {
         console.log(r);
         $(".typeahead-list-panel").empty("");
         if (r.length > 0) {
-            var list = '<ul style="list-style : none;">'
+            var list = '<ol style="margin-left: 20px; border: 1px solid black;">'
             for (var z = 0; z < r.length; z++) {
-                list += '<li id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? r[z].title : r[z].name) + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? r[z].type : r[z].address.country) + "</li>";
+                list += '<li style="border: 1px solid black; padding: 10px; text-align: left;" id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? r[z].title : r[z].name) + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? ((r[z].type !== undefined) ? r[z].type : r[z].status) : ((r[z].address !== undefined) ? r[z].address.raw : r[z].email)) + "</li>";
                 $(document).on("click", "#" + r[z]._id + "", function() {
                     LINKEDIN.personId = $(this).attr('id');
                     console.log(LINKEDIN.personId);
@@ -416,7 +416,7 @@ var LINKEDIN = {
                     }
                     $(".typeahead-list-panel").empty("");
                 });
-            } + "</ul>";
+            } + "</ol>";
             $(".typeahead-list-panel").append(list);
         } else {
             $(".typeahead-list-panel").empty("");
@@ -426,9 +426,9 @@ var LINKEDIN = {
         console.log(r);
         $(".typeahead-list-panel-1").empty("");
         if (r.length > 0) {
-            var list = '<ul style="list-style : none;">'
+            var list = '<ol style="margin-left: 20px; border: 1px solid black;">'
             for (var z = 0; z < r.length; z++) {
-                list += '<li id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + r[z].title + '&nbsp;&nbsp;&nbsp;&nbsp;' + r[z].type + "</li>";
+                list += '<li style="border: 1px solid black; padding: 10px; text-align: left;" id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + r[z].title + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((r[z].type !== undefined) ? r[z].type : r[z].status) + "</li>";
                 $(document).on("click", "#" + r[z]._id + "", function() {
                     LINKEDIN.companyId = $(this).attr('id');
                     console.log(LINKEDIN.companyId);
@@ -439,7 +439,7 @@ var LINKEDIN = {
                     $('.appendCompanyTypeahead').show();
                     $(".typeahead-list-panel-1").empty("");
                 });
-            } + "</ul>";
+            } + "</ol>";
             $(".typeahead-list-panel-1").append(list);
         } else {
             $(".typeahead-list-panel-1").empty("");
