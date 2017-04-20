@@ -53,7 +53,7 @@ var SELECTOR = {
     }
 };
 
-var createdBy : {
+var createdBy = {
     'createdBy' : '58f75154eaa3bcef71284a91'
 }
 
