@@ -329,6 +329,7 @@ var LINKEDIN = {
             "lk.username": username
         }, function(r) {
             console.log(r);
+            r = r.data;
             $(key).parent().parent().find('h5.msg-crm-status').remove();
             $(key).parent().parent().find('h5.crm-person-id').remove();
             $(key).parent().parent().find('h5.crm-company-id').remove();
@@ -360,7 +361,7 @@ var LINKEDIN = {
         service.queryInfo({
             "status.dataId": $(curr).closest('article').attr('data-id')
         }, function(r) {
-            if (r !== undefined && r.length > 0) {
+            if (r !== undefined && r.data !== undefined && r.data.length > 0) {
                 $(curr).parent().find('.activity-crm-status').remove();
                 $(curr).after('<div class="feed-s-post-meta ember-view"><h5 class="activity-crm-status" style="color:green;">Already In CRM</h5></div>');
             } else {
@@ -404,7 +405,8 @@ var LINKEDIN = {
     showPersonList: function(r, elm) {
         console.log(r);
         $(".typeahead-list-panel").empty("");
-        if (r.length > 0) {
+        r = r.data;
+        if (r !== undefined && r.length > 0) {
             var list = '<ol style="margin-left: 20px; border: 1px solid black;">'
             for (var z = 0; z < r.length; z++) {
                 list += '<li style="border: 1px solid black; padding: 10px; text-align: left;" id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? r[z].title : r[z].name) + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((LINKEDIN.isCompany()) ? ((r[z].type !== undefined) ? r[z].type : r[z].status) : ((r[z].address !== undefined) ? r[z].address.raw : r[z].email)) + "</li>";
@@ -425,7 +427,8 @@ var LINKEDIN = {
     showPersonList1: function(r, elm) {
         console.log(r);
         $(".typeahead-list-panel-1").empty("");
-        if (r.length > 0) {
+        if (r.data !== undefined && r.data.length > 0) {
+            r = r.data;
             var list = '<ol style="margin-left: 20px; border: 1px solid black;">'
             for (var z = 0; z < r.length; z++) {
                 list += '<li style="border: 1px solid black; padding: 10px; text-align: left;" id="' + r[z]._id + '">' + r[z]._id + '&nbsp;&nbsp;&nbsp;&nbsp;' + r[z].title + '&nbsp;&nbsp;&nbsp;&nbsp;' + ((r[z].type !== undefined) ? r[z].type : r[z].status) + "</li>";
@@ -528,6 +531,7 @@ var LINKEDIN = {
         service.queryCompany({
             "lk.url": window.location.href
         }, function(r) {
+            r = r.data;
             if (r.length === 1) {
                 $(SELECTOR.company.title).after('<h4 style="color:green;">EXIST IN CRM</h4>');
                 $('button[action=Save]').hide();
@@ -619,6 +623,7 @@ var LINKEDIN = {
         service.queryPerson({
             "lk.url": window.location.href
         }, function(r) {
+            r = r.data;
             if (r !== undefined && r.length === 1) {
                 var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
                 view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
@@ -652,6 +657,7 @@ var LINKEDIN = {
                     "name": select(SELECTOR.name, profileCard)[0].textContent.trim(),
                     "address.country": add1
                 }, function(r) {
+                    r = r.data;
                     if (r !== undefined && r.length === 1) {
                         var view = '<button style="margin:8px;" class="primary top-card-action" action="getFromServer"><span class="default-text">Already Exist</span></button>';
                         view = view + '<button style="margin:8px;" class="primary top-card-action" action="' + actions[1] + '"><span class="default-text">' + actions[1] + '</span></button>';
