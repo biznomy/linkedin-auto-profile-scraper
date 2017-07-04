@@ -867,7 +867,7 @@ var LINKEDIN = {
             USER['category'].push("cat-tl");
 
             // if(){
-                
+
             // }
 
 
@@ -957,8 +957,14 @@ var LINKEDIN = {
         if (LINKEDIN.personId !== undefined && LINKEDIN.personId !== "") {
             USER["_id"] = LINKEDIN.personId;
         }
-        LINKEDIN.tempUserObj = USER;
-        return USER;
+        if(USER.lk.url == "" && USER.address.length < 1) {
+            alert("Plugin Faliure Occur : Contact Author.");
+            return;
+        } else {
+            LINKEDIN.tempUserObj = USER;
+            return USER;
+        }
+        
     },
     getUsername: function() {
         var href = window.location.href;
