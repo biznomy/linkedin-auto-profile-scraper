@@ -857,6 +857,7 @@ var LINKEDIN = {
                     url: href,
                     logo: $(SELECTOR.company.logo).attr('src'),
                     about: $(SELECTOR.company.about).text(),
+                    detail: $(SELECTOR.company.about).text(),
                     specailites: $(SELECTOR.company.specailites).text().trim(),
                     founded: $(SELECTOR.company.founded).text().trim(),
                     size: $(SELECTOR.company.size).text().trim(),
