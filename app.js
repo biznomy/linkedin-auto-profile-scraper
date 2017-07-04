@@ -863,6 +863,14 @@ var LINKEDIN = {
                     type: $(SELECTOR.company.industry).text().trim(),
                 }
             };
+            USER['category'] = [];
+            USER['category'].push("cat-tl");
+
+            // if(){
+                
+            // }
+
+
             // if (USER.lk.type !== "") {
             //     USER['category'] = [];
             //     USER['category'].push(USER.lk.type);
