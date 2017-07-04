@@ -15,16 +15,21 @@ var SELECTOR = {
     personDetails: ".pv-top-card-section__information.mt3",
     company: {
         actionBar: ".org-top-card-module__company-actions-bar .org-top-card-actions",
-        isCom: ".company-main-info-company-descriptions",
+        // isCom: ".company-main-info-company-descriptions",
+        isCom: '.company-hero-image-container.company-hero-image-figure',
         title: ".org-top-card-module__details .org-top-card-module__name",
         logo: ".org-top-card-module__container .org-top-card-module__logo",
         about: ".org-about-us-organization-description .org-about-us-organization-description__text.description",
         specailites: ".org-about-company-module__org-info .org-about-company-module__specialities",
         website: ".org-about-company-module__org-info .org-about-company-module__company-page-url a",
-        size: ".org-about-company-module__org-info .org-about-company-module__staff-count-range",
-        founded: ".org-about-company-module__org-info .org-about-company-module__founded-year",
-        industry: ".org-about-company-module__org-info .org-about-company-module__industry",
-        hq: ".org-about-company-module__org-info .org-about-company-module__headquarter"
+        // size: ".org-about-company-module__org-info .org-about-company-module__staff-count-range",
+        size : ".org-about-company-module__company-staff-count-range",
+        // founded: ".org-about-company-module__org-info .org-about-company-module__founded-year",
+        founded: ".org-about-company-module__founded",
+        // industry: ".org-about-company-module__org-info .org-about-company-module__industry",
+        industry: ".org-about-company-module__company-type",
+        // hq: ".org-about-company-module__org-info .org-about-company-module__headquarter"
+        hq: ".org-about-company-module__headquarters"
     },
     activity: {
         isActivity: "#detail-recent-activity",
@@ -858,21 +863,21 @@ var LINKEDIN = {
                     type: $(SELECTOR.company.industry).text().trim(),
                 }
             };
-            if (USER.lk.type !== "") {
-                USER['category'] = [];
-                USER['category'].push(USER.lk.type);
-            }
-            if (USER.lk.specailites !== "") {
-                USER['tags'] = [];
-                if (USER.lk.specailites.indexOf(',') > -1) {
-                    var spec = USER.lk.specailites.split(',');
-                    for (var c = 0; c < spec.length; c++) {
-                        USER['tags'].push(spec[c]);
-                    }
-                } else {
-                    USER['tags'].push(USER.lk.specailites);
-                }
-            }
+            // if (USER.lk.type !== "") {
+            //     USER['category'] = [];
+            //     USER['category'].push(USER.lk.type);
+            // }
+            // if (USER.lk.specailites !== "") {
+            //     USER['tags'] = [];
+            //     if (USER.lk.specailites.indexOf(',') > -1) {
+            //         var spec = USER.lk.specailites.split(',');
+            //         for (var c = 0; c < spec.length; c++) {
+            //             USER['tags'].push(spec[c]);
+            //         }
+            //     } else {
+            //         USER['tags'].push(USER.lk.specailites);
+            //     }
+            // }
             var location = $(SELECTOR.company.hq).text().trim();
             if (location !== undefined && location !== "") {
                 var add1 = {};
